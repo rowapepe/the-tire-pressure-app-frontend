@@ -1,26 +1,33 @@
-import { useEffect, useState } from "react"
-import type { TireType } from "../data/tireTypes"
-import { TireMedia } from "../components/TireMedia"
+import type { TireType } from '../data/tireTypes'
+import { TireMedia } from '../components/TireMedia'
 
 interface FeedPageProps {
 	tires: TireType[]
+	selectedId: number | null
+	onSelect: (id: number) => void
+	onToggleLike: (tire: TireType) => void
+	onDelete: (id: number) => void
+	isAuthenticated: boolean
+	loading: boolean
+	error: string | null
 }
 
-export function FeedPage({ tires }: FeedPageProps) {
-	const [currentIndex, setCurrentIndex] = useState(0)
-	const [liked, setLiked] = useState(false)
-	const tire = tires[currentIndex] ?? tires[0]
+export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, isAuthenticated, loading, error }: FeedPageProps) {
+	if (!tires.length) {
+		return (
+			<section className="feed-empty">
+				<p>{error ?? 'Нет доступных шин.'}</p>
+			</section>
+		)
+	}
 
-	useEffect(() => {
-		setCurrentIndex(0)
-		setLiked(false)
-	}, [tires])
-
-	if (!tire) return <p className="p-4">Нет доступных шин.</p>
+	const foundIndex = selectedId === null ? 0 : tires.findIndex((item) => item.id === selectedId)
+	const currentIndex = foundIndex >= 0 ? foundIndex : 0
+	const tire = tires[currentIndex]
 
 	const nextTire = () => {
-		setCurrentIndex((index) => (index + 1) % tires.length)
-		setLiked(false)
+		const next = tires[(currentIndex + 1) % tires.length]
+		if (next) onSelect(next.id)
 	}
 
 	return (
@@ -31,7 +38,7 @@ export function FeedPage({ tires }: FeedPageProps) {
 					<h2>{tire.title}</h2>
 					<details className="feed-more">
 						<summary>
-							<span className="feed-description">{tire.description ?? "Описание отсутствует."}</span>
+							<span className="feed-description">{tire.description ?? 'Описание отсутствует.'}</span>
 							<span className="more-link more-open">Больше</span>
 							<span className="more-link more-close">Меньше</span>
 						</summary>
@@ -43,15 +50,26 @@ export function FeedPage({ tires }: FeedPageProps) {
 				</div>
 			</div>
 			<div className="feed-actions">
-				<button type="button" className="like-btn" onClick={() => setLiked((value) => !value)} aria-label="Поставить лайк">
+				<button
+					type="button"
+					className={`like-btn ${tire.isLiked ? 'liked' : ''}`}
+					onClick={() => onToggleLike(tire)}
+					disabled={loading}
+					aria-label="Поставить лайк"
+				>
 					<span className="like-icon">
-						<img src={liked ? "/icons/like-active.png" : "/icons/like.png"} alt="Лайк" />
+						<img src={tire.isLiked ? '/icons/like-active.png' : '/icons/like.png'} alt="Лайк" />
 					</span>
-					<span>{tire.likesCount + Number(liked)}</span>
+					<span>{tire.likesCount}</span>
 				</button>
-				<button type="button" className="next-btn" onClick={nextTire} aria-label="Следующая шина">
+				<button type="button" className="next-btn" onClick={nextTire} disabled={loading || tires.length < 2} aria-label="Следующая шина">
 					<img src="/icons/next.png" alt="Следующая" />
 				</button>
+				{isAuthenticated && tire.isOwner && (
+					<button type="button" className="next-btn delete-btn" onClick={() => onDelete(tire.id)} disabled={loading} aria-label="Удалить услугу">
+						×
+					</button>
+				)}
 			</div>
 		</section>
 	)

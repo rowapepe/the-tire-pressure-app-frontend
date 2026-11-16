@@ -7,14 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "generate-api": "node scripts/generate-api.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.14.0",
     "@vitejs/plugin-react": "latest",
+    "axios": "^1.21.1",
     "bootstrap": "latest",
     "react": "latest",
     "react-bootstrap": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "react-redux": "^9.3.1"
   },
   "devDependencies": {
     "@eslint/js": "latest",
@@ -24,6 +28,7 @@
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
+    "swagger-typescript-api": "^13.14.0",
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vite": "latest"

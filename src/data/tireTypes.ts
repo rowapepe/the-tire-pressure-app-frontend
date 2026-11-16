@@ -1,3 +1,5 @@
+import type { TireTypeResponseDto } from "../api/Api"
+
 export interface TireType {
 	id: number
 	title: string
@@ -7,8 +9,25 @@ export interface TireType {
 	likesCount: number
 	imageUrl: string
 	videoUrl: string
+	isLiked: boolean
+	isOwner: boolean
+	status?: "draft" | "published" | "deleted"
 }
 
+export interface TireFilters {
+	radiusMin: number
+	radiusMax: number
+}
+
+export const DEFAULT_FILTERS: TireFilters = {
+	radiusMin: 13,
+	radiusMax: 22
+}
+
+/**
+ * Mock-коллекция используется только в режиме гостя и только тогда,
+ * когда запрос к бэкенду завершился ошибкой.
+ */
 export const TIRE_TYPES_MOCK: TireType[] = [
 	{
 		id: 1,
@@ -18,7 +37,10 @@ export const TIRE_TYPES_MOCK: TireType[] = [
 		radius: 18,
 		likesCount: 128,
 		imageUrl: "",
-		videoUrl: ""
+		videoUrl: "",
+		isLiked: false,
+		isOwner: false,
+		status: "published"
 	},
 	{
 		id: 2,
@@ -28,7 +50,10 @@ export const TIRE_TYPES_MOCK: TireType[] = [
 		radius: 17,
 		likesCount: 96,
 		imageUrl: "",
-		videoUrl: ""
+		videoUrl: "",
+		isLiked: false,
+		isOwner: false,
+		status: "published"
 	},
 	{
 		id: 3,
@@ -38,7 +63,10 @@ export const TIRE_TYPES_MOCK: TireType[] = [
 		radius: 19,
 		likesCount: 74,
 		imageUrl: "",
-		videoUrl: ""
+		videoUrl: "",
+		isLiked: false,
+		isOwner: false,
+		status: "published"
 	},
 	{
 		id: 4,
@@ -48,7 +76,10 @@ export const TIRE_TYPES_MOCK: TireType[] = [
 		radius: 16,
 		likesCount: 111,
 		imageUrl: "",
-		videoUrl: ""
+		videoUrl: "",
+		isLiked: false,
+		isOwner: false,
+		status: "published"
 	},
 	{
 		id: 5,
@@ -58,6 +89,29 @@ export const TIRE_TYPES_MOCK: TireType[] = [
 		radius: 18,
 		likesCount: 63,
 		imageUrl: "",
-		videoUrl: ""
+		videoUrl: "",
+		isLiked: false,
+		isOwner: false,
+		status: "published"
 	}
 ]
+
+export function filterMockTires(filters: TireFilters): TireType[] {
+	return TIRE_TYPES_MOCK.filter((tire) => tire.radius >= filters.radiusMin && tire.radius <= filters.radiusMax)
+}
+
+export function mapTire(dto: TireTypeResponseDto): TireType {
+	return {
+		id: dto.id,
+		title: dto.title,
+		description: dto.description,
+		optimalPressure: dto.optimalPressure ?? 0,
+		radius: dto.radius ?? DEFAULT_FILTERS.radiusMin,
+		likesCount: dto.likesCount,
+		imageUrl: dto.imageUrl ?? "",
+		videoUrl: dto.videoUrl ?? "",
+		isLiked: dto.isLiked === 1,
+		isOwner: dto.isOwner === 1,
+		status: dto.status
+	}
+}

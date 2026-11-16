@@ -1,37 +1,42 @@
-import { useMemo, useState } from "react"
-import type { TireType } from "../data/tireTypes"
-import { FilterPanel, type Filters } from "../components/FilterPanel"
+import { useDispatch, useSelector } from "react-redux"
+
+import { FilterPanel } from "../components/FilterPanel"
 import { TireCard } from "../components/TireCard"
+import type { AppDispatch, RootState } from "../store/store"
+import { deleteTire, toggleMockLike, toggleTireLike } from "../store/tiresSlice"
 
 interface TilePageProps {
-	tires: TireType[]
 	onOpenInFeed: (id: number) => void
 }
 
-const initialFilters: Filters = { radiusMin: 13, radiusMax: 22 }
-
-export function TilePage({ tires, onOpenInFeed }: TilePageProps) {
-	const [draftFilters, setDraftFilters] = useState<Filters>(initialFilters)
-	const [appliedFilters, setAppliedFilters] = useState<Filters>(initialFilters)
-	const filteredTires = useMemo(() => {
-		return tires.filter((tire) => tire.radius >= appliedFilters.radiusMin && tire.radius <= appliedFilters.radiusMax)
-	}, [appliedFilters, tires])
+export function TilePage({ onOpenInFeed }: TilePageProps) {
+	const dispatch = useDispatch<AppDispatch>()
+	const { items, loading, error, source } = useSelector((state: RootState) => state.tires)
+	const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated)
 
 	return (
 		<section className="tile-page">
 			<h1 className="page-title">Каталог шин</h1>
-			<FilterPanel
-				filters={draftFilters}
-				onChange={setDraftFilters}
-				onApply={() => setAppliedFilters(draftFilters)}
-				resultCount={filteredTires.length}
-			/>
+			<FilterPanel resultCount={items.length} loading={loading} />
+			{error && source !== "mock" && <p className="form-error notice">{error}</p>}
 			<div className="tile-grid">
-				{filteredTires.map((tire) => (
-					<TireCard key={tire.id} tire={tire} onOpen={onOpenInFeed} />
+				{items.map((tire) => (
+					<div className="tile-entry" key={tire.id}>
+						<TireCard
+							tire={tire}
+							onOpen={onOpenInFeed}
+							isAuthenticated={isAuthenticated}
+							loading={loading}
+							onToggleLike={() => {
+								if (isAuthenticated) dispatch(toggleTireLike(tire.id))
+								else dispatch(toggleMockLike(tire.id))
+							}}
+							onDelete={() => dispatch(deleteTire(tire.id))}
+						/>
+					</div>
 				))}
 			</div>
-			{filteredTires.length === 0 && <p className="empty-result">Ничего не найдено</p>}
+			{!items.length && !loading && <p className="empty-result">Ничего не найдено</p>}
 		</section>
 	)
 }

@@ -1,0 +1,584 @@
+{
+	"openapi": "3.0.0",
+	"paths": {
+		"/api/tire_types": {
+			"get": {
+				"description": "Публичный метод. Возвращает опубликованные услуги, фильтр по радиусу. С кукой дополнительно заполняет isLiked и isOwner.",
+				"operationId": "TireTypesController_getAllTireTypes",
+				"parameters": [
+					{
+						"name": "radiusMin",
+						"required": false,
+						"in": "query",
+						"schema": {
+							"minimum": 13,
+							"maximum": 22,
+							"type": "number"
+						}
+					},
+					{
+						"name": "radiusMax",
+						"required": false,
+						"in": "query",
+						"schema": {
+							"minimum": 13,
+							"maximum": 22,
+							"type": "number"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/TireTypeResponseDto"
+									}
+								}
+							}
+						}
+					}
+				},
+				"summary": "Список услуг с фильтром",
+				"tags": ["tire_types"]
+			},
+			"post": {
+				"description": "Только для авторизованного создателя. Автор (creatorId) подставляется из сессии. У пользователя может быть один черновик.",
+				"operationId": "TireTypesController_createTireType",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"required": ["title", "image", "video"],
+								"properties": {
+									"title": {
+										"type": "string",
+										"maxLength": 100,
+										"example": "Летние шины R17"
+									},
+									"image": {
+										"type": "string",
+										"format": "binary",
+										"description": "jpeg, png, webp или gif, до 5 МБ"
+									},
+									"video": {
+										"type": "string",
+										"format": "binary",
+										"description": "mp4, mov или webm, до 50 МБ"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TireTypeResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Нет действующей сессии"
+					},
+					"409": {
+						"description": "У пользователя уже есть черновик"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Создание услуги-черновика",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/tire_types/feed/{id}": {
+			"get": {
+				"description": "Публичный метод. Без `id` возвращает первую опубликованную услугу. С `id` возвращает эту услугу, а при `next=true` следующую за ней, после последней — первую.",
+				"operationId": "TireTypesController_getFeedItem[1]",
+				"parameters": [
+					{
+						"name": "next",
+						"required": false,
+						"in": "query",
+						"schema": {
+							"type": "boolean"
+						}
+					},
+					{
+						"name": "id",
+						"required": false,
+						"in": "path",
+						"description": "ID услуги. Можно не указывать: вернётся первая опубликованная услуга",
+						"schema": {
+							"type": "number"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TireTypeResponseDto"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Услуга не найдена или опубликованных услуг нет"
+					}
+				},
+				"summary": "Лента услуг",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/tire_types/draft": {
+			"get": {
+				"description": "Только для авторизованного создателя.",
+				"operationId": "TireTypesController_getDraft",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TireTypeResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Нет действующей сессии"
+					},
+					"404": {
+						"description": "Черновик не найден"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Черновик текущего пользователя",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/tire_types/{id}/publish": {
+			"put": {
+				"description": "Только для создателя услуги: заполняет описание, давление и радиус и переводит черновик в published.",
+				"operationId": "TireTypesController_publishTireType",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PublishTireTypeDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TireTypeResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Нет действующей сессии"
+					},
+					"404": {
+						"description": "Услуга не найдена или принадлежит другому пользователю"
+					},
+					"409": {
+						"description": "Опубликовать можно только черновик"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Публикация услуги",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/tire_types/{id}": {
+			"delete": {
+				"description": "Только для создателя услуги. Услуга помечается как deleted.",
+				"operationId": "TireTypesController_deleteTireType",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "number"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Услуга удалена"
+					},
+					"401": {
+						"description": "Нет действующей сессии"
+					},
+					"404": {
+						"description": "Услуга не найдена или принадлежит другому пользователю"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Удаление услуги",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/tire_types/{id}/like": {
+			"post": {
+				"description": "Только для авторизованного пользователя. like=1 ставит, like=0 снимает.",
+				"operationId": "TireTypesController_setLike",
+				"parameters": [
+					{
+						"name": "id",
+						"required": true,
+						"in": "path",
+						"schema": {
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LikeTireTypeDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LikeResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Нет действующей сессии"
+					},
+					"404": {
+						"description": "Услуга не найдена"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Поставить или снять лайк",
+				"tags": ["tire_types"]
+			}
+		},
+		"/api/users/register": {
+			"post": {
+				"description": "Создаёт пользователя. Логин уникален, пароль хранится в виде scrypt-хеша.",
+				"operationId": "UsersController_register",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RegisterUserDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponseDto"
+								}
+							}
+						}
+					}
+				},
+				"summary": "Регистрация",
+				"tags": ["users"]
+			}
+		},
+		"/api/users/login": {
+			"post": {
+				"description": "Проверяет логин и пароль, создаёт сессию в Redis и выдаёт HttpOnly-куку `sessionId`.",
+				"operationId": "UsersController_login",
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginUserDto"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Успех, кука sessionId в заголовке Set-Cookie",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponseDto"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Неверный логин или пароль"
+					}
+				},
+				"summary": "Аутентификация",
+				"tags": ["users"]
+			}
+		},
+		"/api/users/logout": {
+			"post": {
+				"description": "Удаляет сессию из Redis и очищает куку. Повторный вызов безопасен.",
+				"operationId": "UsersController_logout",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Сессия завершена"
+					}
+				},
+				"security": [
+					{
+						"cookie": []
+					}
+				],
+				"summary": "Деавторизация",
+				"tags": ["users"]
+			}
+		}
+	},
+	"info": {
+		"title": "Tire Pressure API",
+		"description": "Чтение (список и лента услуг) доступно без авторизации. Методы создателя требуют сессию: выполните POST /api/users/login, браузер сохранит куку sessionId и будет отправлять её сам.",
+		"version": "1.0",
+		"contact": {}
+	},
+	"tags": [],
+	"servers": [],
+	"components": {
+		"securitySchemes": {
+			"cookie": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "sessionId"
+			}
+		},
+		"schemas": {
+			"TireTypeResponseDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true
+					},
+					"status": {
+						"enum": ["draft", "published", "deleted"],
+						"type": "string"
+					},
+					"imageUrl": {
+						"type": "string",
+						"nullable": true
+					},
+					"videoUrl": {
+						"type": "string",
+						"nullable": true
+					},
+					"optimalPressure": {
+						"type": "number",
+						"nullable": true
+					},
+					"radius": {
+						"type": "number",
+						"nullable": true
+					},
+					"likesCount": {
+						"type": "number"
+					},
+					"isLiked": {
+						"enum": [0, 1],
+						"type": "number"
+					},
+					"isOwner": {
+						"enum": [0, 1],
+						"type": "number"
+					},
+					"createdAt": {
+						"format": "date-time",
+						"type": "string"
+					},
+					"formedAt": {
+						"format": "date-time",
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"description",
+					"status",
+					"imageUrl",
+					"videoUrl",
+					"optimalPressure",
+					"radius",
+					"likesCount",
+					"isLiked",
+					"isOwner",
+					"createdAt",
+					"formedAt"
+				]
+			},
+			"PublishTireTypeDto": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 100
+					},
+					"description": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 500
+					},
+					"optimalPressure": {
+						"type": "number",
+						"minimum": 0.5,
+						"maximum": 9.9
+					},
+					"radius": {
+						"type": "number",
+						"minimum": 13,
+						"maximum": 22
+					}
+				},
+				"required": ["description", "optimalPressure", "radius"]
+			},
+			"LikeTireTypeDto": {
+				"type": "object",
+				"properties": {
+					"like": {
+						"type": "number",
+						"enum": [0, 1]
+					}
+				},
+				"required": ["like"]
+			},
+			"LikeResponseDto": {
+				"type": "object",
+				"properties": {
+					"likesCount": {
+						"type": "number"
+					},
+					"isLiked": {
+						"type": "number",
+						"enum": [0, 1]
+					}
+				},
+				"required": ["likesCount", "isLiked"]
+			},
+			"RegisterUserDto": {
+				"type": "object",
+				"properties": {
+					"login": {
+						"type": "string",
+						"minLength": 3,
+						"maxLength": 50,
+						"pattern": "^[A-Za-z0-9_.-]+$"
+					},
+					"password": {
+						"type": "string",
+						"minLength": 6,
+						"maxLength": 72
+					}
+				},
+				"required": ["login", "password"]
+			},
+			"UserResponseDto": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "number"
+					},
+					"login": {
+						"type": "string"
+					}
+				},
+				"required": ["id", "login"]
+			},
+			"LoginUserDto": {
+				"type": "object",
+				"properties": {
+					"login": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": ["login", "password"]
+			}
+		}
+	}
+}
