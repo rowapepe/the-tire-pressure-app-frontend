@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
-import { http } from "./api/http"
+import { api } from "./api"
 import { BottomNav, type Page } from "./components/BottomNav"
 import { LoadingOverlay } from "./components/LoadingOverlay"
 import type { TireType } from "./data/tireTypes"
@@ -29,7 +29,6 @@ function App() {
 	const [feedId, setFeedId] = useState<number | null>(null)
 	const initialFetchStarted = useRef(false)
 
-	// В StrictMode эффект запускается дважды: не дублируем первый запрос списка.
 	useEffect(() => {
 		if (initialFetchStarted.current) return
 		initialFetchStarted.current = true
@@ -50,18 +49,11 @@ function App() {
 		setPage(next)
 	}
 
-	/**
-	 * Выход: только axios + ручное обновление Redux.
-	 * logout-редьюсер сбрасывает пользователя, а filtersSlice по extraReducers
-	 * автоматически очищает фильтр. После этого список запрашивается заново.
-	 */
 	const handleLogout = async () => {
 		dispatch(setAuthLoading(true))
 		try {
-			await http.post("/users/logout")
-		} catch {
-			// даже если сессия уже истекла, интерфейс должен вернуться в гостевой режим
-		}
+			await api.usersControllerLogout()
+		} catch {}
 		dispatch(logout())
 		dispatch(fetchTires())
 		setFeedId(null)
@@ -109,7 +101,6 @@ function App() {
 
 			{source === "mock" && <p className="api-notice">{error ?? "Показаны mock-данные"}</p>}
 			{source !== "mock" && error && <p className="form-error notice global-error">{error}</p>}
-			{isAuthenticated && <p className="user-badge">Вы вошли как {username}</p>}
 
 			{busy && <LoadingOverlay label={authLoading ? "Проверяем авторизацию…" : "Выполняется запрос…"} />}
 

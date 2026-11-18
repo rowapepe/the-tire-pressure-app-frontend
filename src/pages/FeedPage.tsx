@@ -1,5 +1,5 @@
-import type { TireType } from '../data/tireTypes'
-import { TireMedia } from '../components/TireMedia'
+import type { TireType } from "../data/tireTypes"
+import { TireMedia } from "../components/TireMedia"
 
 interface FeedPageProps {
 	tires: TireType[]
@@ -16,7 +16,7 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 	if (!tires.length) {
 		return (
 			<section className="feed-empty">
-				<p>{error ?? 'Нет доступных шин.'}</p>
+				<p>{error ?? "Нет доступных шин."}</p>
 			</section>
 		)
 	}
@@ -38,7 +38,7 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 					<h2>{tire.title}</h2>
 					<details className="feed-more">
 						<summary>
-							<span className="feed-description">{tire.description ?? 'Описание отсутствует.'}</span>
+							<span className="feed-description">{tire.description ?? "Описание отсутствует."}</span>
 							<span className="more-link more-open">Больше</span>
 							<span className="more-link more-close">Меньше</span>
 						</summary>
@@ -52,13 +52,13 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 			<div className="feed-actions">
 				<button
 					type="button"
-					className={`like-btn ${tire.isLiked ? 'liked' : ''}`}
+					className={`like-btn ${tire.isLiked ? "liked" : ""}`}
 					onClick={() => onToggleLike(tire)}
 					disabled={loading}
 					aria-label="Поставить лайк"
 				>
 					<span className="like-icon">
-						<img src={tire.isLiked ? '/icons/like-active.png' : '/icons/like.png'} alt="Лайк" />
+						<img src={tire.isLiked ? "/icons/like-active.png" : "/icons/like.png"} alt="Лайк" />
 					</span>
 					<span>{tire.likesCount}</span>
 				</button>
@@ -66,7 +66,13 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 					<img src="/icons/next.png" alt="Следующая" />
 				</button>
 				{isAuthenticated && tire.isOwner && (
-					<button type="button" className="next-btn delete-btn" onClick={() => onDelete(tire.id)} disabled={loading} aria-label="Удалить услугу">
+					<button
+						type="button"
+						className="next-btn delete-btn"
+						onClick={() => onDelete(tire.id)}
+						disabled={loading}
+						aria-label="Удалить услугу"
+					>
 						×
 					</button>
 				)}

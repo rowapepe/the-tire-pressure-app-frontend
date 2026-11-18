@@ -1,4 +1,4 @@
-import type { TireTypeResponseDto } from "../api/Api"
+import type { TireTypeResponseDto } from "../api"
 
 export interface TireType {
 	id: number

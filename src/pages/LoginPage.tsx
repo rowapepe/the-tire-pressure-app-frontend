@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
-import type { UserResponseDto } from "../api/Api"
-import { getApiErrorMessage, http } from "../api/http"
+import { api, type UserResponseDto } from "../api"
+import { getApiErrorMessage } from "../api/http"
 import type { AppDispatch, RootState } from "../store/store"
 import { fetchTires } from "../store/tiresSlice"
 import { setAuthError, setAuthLoading, setUser } from "../store/userSlice"
@@ -29,7 +29,7 @@ export function LoginPage({ onLoggedIn, onGuest }: LoginPageProps) {
 		dispatch(setAuthError(null))
 		dispatch(setAuthLoading(true))
 		try {
-			const { data } = await http.post<UserResponseDto>("/users/login", {
+			const { data }: { data: UserResponseDto } = await api.usersControllerLogin({
 				login: login.trim(),
 				password
 			})
