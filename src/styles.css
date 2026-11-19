@@ -287,6 +287,7 @@ input {
 	margin: 6px 0 4px;
 }
 .feed-description {
+	display: block;
 	color: #fff;
 	font-size: 12px;
 	font-weight: 500;
@@ -399,8 +400,8 @@ input {
 	padding: 4px 9px;
 	border: 1px solid var(--clr-red);
 	border-radius: 20px;
-	background: #fff;
-	color: var(--clr-red);
+	background: var(--clr-red);
+	color: #fff;
 	font-size: 11px;
 	font-weight: 700;
 	cursor: pointer;
@@ -578,44 +579,6 @@ input {
 img.media-preview {
 	object-position: top;
 }
-.media-preview-box {
-	position: relative;
-	width: 110px;
-	height: 65px;
-	flex: 0 0 auto;
-}
-.media-preview-box .media-preview {
-	width: 100%;
-	height: 100%;
-}
-.media-play {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 26px;
-	height: 26px;
-	padding-left: 2px;
-	border-radius: 50%;
-	background: rgba(0, 0, 0, 0.45);
-	color: #fff;
-	font-size: 11px;
-	line-height: 1;
-	transform: translate(-50%, -50%);
-	pointer-events: none;
-}
-.media-preview.empty {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border: 1px dashed #c4c4c4;
-	background: #f7f7f7;
-	color: #949393;
-	font-size: 11px;
-	text-align: center;
-}
 .submit-btn {
 	width: 100%;
 	padding: 10px;
@@ -671,16 +634,6 @@ img.media-preview {
 }
 .notice {
 	margin: 8px 15px;
-}
-.hint {
-	color: #8a8a8a;
-	font-size: 11px;
-	line-height: 1.45;
-}
-.hint code {
-	padding: 1px 4px;
-	border-radius: 4px;
-	background: #f1eef9;
 }
 .auth-card {
 	display: flex;

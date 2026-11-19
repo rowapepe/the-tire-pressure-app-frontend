@@ -53,7 +53,9 @@ function App() {
 		dispatch(setAuthLoading(true))
 		try {
 			await api.usersControllerLogout()
-		} catch {}
+		} catch {
+			// локальный выход выполняется даже при недоступности API
+		}
 		dispatch(logout())
 		dispatch(fetchTires())
 		setFeedId(null)

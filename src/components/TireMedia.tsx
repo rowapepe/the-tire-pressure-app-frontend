@@ -1,23 +1,10 @@
 import type { TireType } from "../data/tireTypes"
+import { DEFAULT_IMAGE, DEFAULT_VIDEO, toMediaProxyUrl } from "../media"
 
 interface TireMediaProps {
 	tire: TireType
 	mode?: "image" | "video"
 	className?: string
-}
-
-const DEFAULT_IMAGE = "/default.jpg"
-const DEFAULT_VIDEO = "/default.MOV"
-
-export function toMediaProxyUrl(url: string | null | undefined): string {
-	if (!url) return ""
-	try {
-		const parsed = new URL(url)
-		if (parsed.pathname.startsWith("/media/") || parsed.port === "9000") return `/s3${parsed.pathname}${parsed.search}`
-		return url
-	} catch {
-		return url
-	}
 }
 
 function fallbackToDefaultImage(event: React.SyntheticEvent<HTMLImageElement>) {

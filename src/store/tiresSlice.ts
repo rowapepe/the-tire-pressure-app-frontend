@@ -32,13 +32,18 @@ interface FetchTiresError {
 	isGuest: boolean
 }
 
-export interface NewTirePayload {
+export interface NewTireDraftPayload {
+	title: string
+	image: File
+	video: File
+}
+
+export interface PublishTirePayload {
+	id: number
 	title: string
 	description: string
 	optimalPressure: number
 	radius: number
-	image: File
-	video: File
 }
 
 export const fetchTires = createAsyncThunk<FetchTiresResult, void, { state: RootState; rejectValue: FetchTiresError }>(
@@ -55,7 +60,7 @@ export const fetchTires = createAsyncThunk<FetchTiresResult, void, { state: Root
 		} catch (error) {
 			const isGuest = !state.user.isAuthenticated
 			return rejectWithValue({
-				message: getApiErrorMessage(error, "Не удалось загрузить услуги"),
+				message: getApiErrorMessage(error, "Не удалось загрузить шины"),
 				mock: isGuest ? filterMockTires(state.filters) : null,
 				isGuest
 			})
@@ -63,26 +68,44 @@ export const fetchTires = createAsyncThunk<FetchTiresResult, void, { state: Root
 	}
 )
 
-export const createTire = createAsyncThunk<TireType, NewTirePayload, { rejectValue: string }>(
-	"tires/createTire",
+export const fetchTireDraft = createAsyncThunk<TireType | null, void>("tires/fetchTireDraft", async () => {
+	try {
+		const response = await api.tireTypesControllerGetDraft()
+		return response.data ? mapTire(response.data) : null
+	} catch {
+		return null
+	}
+})
+
+export const createTireDraft = createAsyncThunk<TireType, NewTireDraftPayload, { rejectValue: string }>(
+	"tires/createTireDraft",
 	async (payload, { rejectWithValue }) => {
 		try {
-			const draft = await api.tireTypesControllerCreateTireType({
+			const response = await api.tireTypesControllerCreateTireType({
 				title: payload.title,
 				image: payload.image,
 				video: payload.video
 			})
+			return mapTire(response.data)
+		} catch (error) {
+			return rejectWithValue(getApiErrorMessage(error, "Не удалось создать черновик"))
+		}
+	}
+)
 
-			const published = await api.tireTypesControllerPublishTireType(draft.data.id, {
+export const publishTire = createAsyncThunk<TireType, PublishTirePayload, { rejectValue: string }>(
+	"tires/publishTire",
+	async (payload, { rejectWithValue }) => {
+		try {
+			const response = await api.tireTypesControllerPublishTireType(payload.id, {
 				title: payload.title,
 				description: payload.description,
 				optimalPressure: payload.optimalPressure,
 				radius: payload.radius
 			})
-
-			return mapTire(published.data)
+			return mapTire(response.data)
 		} catch (error) {
-			return rejectWithValue(getApiErrorMessage(error, "Не удалось добавить услугу"))
+			return rejectWithValue(getApiErrorMessage(error, "Не удалось опубликовать шину"))
 		}
 	}
 )
@@ -92,7 +115,7 @@ export const deleteTire = createAsyncThunk<number, number, { rejectValue: string
 		await api.tireTypesControllerDeleteTireType(id)
 		return id
 	} catch (error) {
-		return rejectWithValue(getApiErrorMessage(error, "Не удалось удалить услугу"))
+		return rejectWithValue(getApiErrorMessage(error, "Не удалось удалить шину"))
 	}
 })
 
@@ -106,7 +129,7 @@ export const toggleTireLike = createAsyncThunk<LikeResult, number, { state: Root
 	"tires/toggleTireLike",
 	async (id, { getState, rejectWithValue }) => {
 		const tire = getState().tires.items.find((item) => item.id === id)
-		if (!tire) return rejectWithValue("Услуга не найдена")
+		if (!tire) return rejectWithValue("Шина не найдена")
 
 		try {
 			const response = await api.tireTypesControllerSetLike(id, { like: tire.isLiked ? 0 : 1 })
@@ -153,22 +176,44 @@ const tiresSlice = createSlice({
 						state.items = []
 						state.source = "empty"
 					}
-					state.error = action.payload?.message ?? action.error.message ?? "Не удалось загрузить услуги"
+					state.error = action.payload?.message ?? action.error.message ?? "Не удалось загрузить шины"
 				}
 			})
 
-			.addCase(createTire.pending, (state) => {
+			.addCase(fetchTireDraft.pending, (state) => {
 				state.loading = true
 				state.error = null
 			})
-			.addCase(createTire.fulfilled, (state, action) => {
+			.addCase(fetchTireDraft.fulfilled, (state) => {
 				state.loading = false
-				state.items.unshift(action.payload)
+			})
+
+			.addCase(createTireDraft.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(createTireDraft.fulfilled, (state) => {
+				state.loading = false
+			})
+			.addCase(createTireDraft.rejected, (state, action) => {
+				state.loading = false
+				state.error = action.payload ?? "Не удалось создать черновик"
+			})
+
+			.addCase(publishTire.pending, (state) => {
+				state.loading = true
+				state.error = null
+			})
+			.addCase(publishTire.fulfilled, (state, action) => {
+				state.loading = false
+				const index = state.items.findIndex((item) => item.id === action.payload.id)
+				if (index >= 0) state.items[index] = action.payload
+				else state.items.unshift(action.payload)
 				state.source = "api"
 			})
-			.addCase(createTire.rejected, (state, action) => {
+			.addCase(publishTire.rejected, (state, action) => {
 				state.loading = false
-				state.error = action.payload ?? "Не удалось добавить услугу"
+				state.error = action.payload ?? "Не удалось опубликовать шину"
 			})
 
 			.addCase(deleteTire.pending, (state) => {
@@ -181,7 +226,7 @@ const tiresSlice = createSlice({
 			})
 			.addCase(deleteTire.rejected, (state, action) => {
 				state.loading = false
-				state.error = action.payload ?? "Не удалось удалить услугу"
+				state.error = action.payload ?? "Не удалось удалить шину"
 			})
 
 			.addCase(toggleTireLike.pending, (state) => {

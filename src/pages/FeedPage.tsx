@@ -4,7 +4,7 @@ import { TireMedia } from "../components/TireMedia"
 interface FeedPageProps {
 	tires: TireType[]
 	selectedId: number | null
-	onSelect: (id: number) => void
+	onSelect: (id: number | null) => void
 	onToggleLike: (tire: TireType) => void
 	onDelete: (id: number) => void
 	isAuthenticated: boolean
@@ -28,6 +28,13 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 	const nextTire = () => {
 		const next = tires[(currentIndex + 1) % tires.length]
 		if (next) onSelect(next.id)
+	}
+
+	const deleteCurrent = () => {
+		const remaining = tires.filter((item) => item.id !== tire.id)
+		const next = remaining[currentIndex] ?? remaining[0] ?? null
+		onDelete(tire.id)
+		onSelect(next ? next.id : null)
 	}
 
 	return (
@@ -55,7 +62,7 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 					className={`like-btn ${tire.isLiked ? "liked" : ""}`}
 					onClick={() => onToggleLike(tire)}
 					disabled={loading}
-					aria-label="Поставить лайк"
+					aria-label={tire.isLiked ? "Убрать лайк" : "Поставить лайк"}
 				>
 					<span className="like-icon">
 						<img src={tire.isLiked ? "/icons/like-active.png" : "/icons/like.png"} alt="Лайк" />
@@ -69,9 +76,9 @@ export function FeedPage({ tires, selectedId, onSelect, onToggleLike, onDelete, 
 					<button
 						type="button"
 						className="next-btn delete-btn"
-						onClick={() => onDelete(tire.id)}
+						onClick={deleteCurrent}
 						disabled={loading}
-						aria-label="Удалить услугу"
+						aria-label="Удалить шину"
 					>
 						×
 					</button>
